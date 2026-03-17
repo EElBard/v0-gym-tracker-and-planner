@@ -6,7 +6,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-svh">
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container flex h-14 items-center justify-between px-4 md:px-6 mx-auto">
           <Link href="/" className="flex items-center gap-2">
             <Dumbbell className="h-6 w-6 text-primary" />
