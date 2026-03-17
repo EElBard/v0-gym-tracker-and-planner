@@ -1,0 +1,206 @@
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { Header } from '@/components/layout/header'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { MachineCard } from '@/components/gym/machine-card'
+import { MuscleCoverageCard } from '@/components/gym/muscle-coverage-card'
+import { analyzeMuscleGroupCoverage } from '@/lib/utils/muscle-coverage'
+import { Plus, Dumbbell, TrendingUp, Calendar } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+
+export default async function DashboardPage() {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  // Fetch machines with their muscle groups and last workout
+  const { data: machines } = await supabase
+    .from('machines')
+    .select(`
+      id,
+      name,
+      photo_pathname,
+      machine_muscle_groups (
+        muscle_group_id,
+        is_primary
+      )
+    `)
+    .eq('user_id', user.id)
+    .order('updated_at', { ascending: false })
+    .limit(6)
+
+  // Fetch recent workouts for stats
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const { data: recentWorkouts } = await supabase
+    .from('workouts')
+    .select(`
+      id,
+      workout_date,
+      machine_id,
+      machines!inner (
+        machine_muscle_groups (
+          muscle_group_id,
+          is_primary
+        )
+      )
+    `)
+    .eq('user_id', user.id)
+    .gte('workout_date', thirtyDaysAgo.toISOString().split('T')[0])
+    .order('workout_date', { ascending: false })
+
+  // Get last workout for each machine
+  const { data: lastWorkouts } = await supabase
+    .from('workouts')
+    .select('machine_id, workout_date')
+    .eq('user_id', user.id)
+    .order('workout_date', { ascending: false })
+
+  const lastWorkoutMap = new Map<string, string>()
+  lastWorkouts?.forEach(w => {
+    if (!lastWorkoutMap.has(w.machine_id)) {
+      lastWorkoutMap.set(w.machine_id, w.workout_date)
+    }
+  })
+
+  // Calculate muscle coverage
+  const workoutsForCoverage = (recentWorkouts || []).map(w => ({
+    workout_date: w.workout_date,
+    muscle_groups: (w.machines as unknown as { machine_muscle_groups: { muscle_group_id: string; is_primary: boolean }[] })?.machine_muscle_groups || [],
+  }))
+  const coverage = analyzeMuscleGroupCoverage(workoutsForCoverage)
+
+  // Format machines for display
+  const formattedMachines = (machines || []).map(m => ({
+    id: m.id,
+    name: m.name,
+    photo_pathname: m.photo_pathname,
+    muscle_groups: m.machine_muscle_groups || [],
+    last_workout_date: lastWorkoutMap.get(m.id) || null,
+  }))
+
+  // Stats
+  const totalWorkoutsThisMonth = recentWorkouts?.length ?? 0
+  const uniqueDaysWorkedOut = new Set(recentWorkouts?.map(w => w.workout_date)).size
+  const machineCount = machines?.length ?? 0
+
+  return (
+    <div className="min-h-svh bg-background">
+      <Header />
+      <main className="container py-6">
+        <div className="flex flex-col gap-6">
+          {/* Welcome section */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">Dashboard</h1>
+              <p className="text-muted-foreground">Track your progress and stay consistent</p>
+            </div>
+            <Button asChild>
+              <Link href="/machines/new">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Machine
+              </Link>
+            </Button>
+          </div>
+
+          {/* Stats cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Workouts This Month
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <span className="text-2xl font-bold">{totalWorkoutsThisMonth}</span>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Days Active
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  <span className="text-2xl font-bold">{uniqueDaysWorkedOut}</span>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Machines
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <Dumbbell className="h-5 w-5 text-primary" />
+                  <span className="text-2xl font-bold">{machineCount}</span>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Last Workout
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-lg font-semibold">
+                  {recentWorkouts?.[0]
+                    ? formatDistanceToNow(new Date(recentWorkouts[0].workout_date), { addSuffix: true })
+                    : 'Never'}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Muscle Coverage */}
+          <MuscleCoverageCard coverage={coverage} />
+
+          {/* Recent Machines */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Your Machines</h2>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/machines">View all</Link>
+              </Button>
+            </div>
+            {formattedMachines.length > 0 ? (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {formattedMachines.map((machine) => (
+                  <MachineCard key={machine.id} machine={machine} />
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center p-12 text-center">
+                  <Dumbbell className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h3 className="font-semibold mb-2">No machines yet</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Add your first gym machine to start tracking your workouts
+                  </p>
+                  <Button asChild>
+                    <Link href="/machines/new">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Your First Machine
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
