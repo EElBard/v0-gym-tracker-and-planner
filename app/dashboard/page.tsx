@@ -91,15 +91,15 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-svh bg-background">
       <Header />
-      <main className="container py-6">
+      <main className="container px-4 md:px-6 mx-auto py-6 max-w-6xl">
         <div className="flex flex-col gap-6">
           {/* Welcome section */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold">Dashboard</h1>
-              <p className="text-muted-foreground">Track your progress and stay consistent</p>
+              <p className="text-muted-foreground text-sm sm:text-base">Track your progress and stay consistent</p>
             </div>
-            <Button asChild>
+            <Button asChild size="sm" className="w-fit">
               <Link href="/machines/new">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Machine

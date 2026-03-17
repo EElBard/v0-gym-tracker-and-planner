@@ -64,7 +64,7 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
   return (
     <div className="min-h-svh bg-background">
       <Header />
-      <main className="container py-6 max-w-2xl">
+      <main className="container px-4 md:px-6 mx-auto py-6 max-w-2xl">
         <div className="flex flex-col gap-6">
           <Link 
             href={`/machines/${machine.id}`}
