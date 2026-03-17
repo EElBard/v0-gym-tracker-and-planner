@@ -96,11 +96,11 @@ export default async function ProgressPage() {
   return (
     <div className="min-h-svh bg-background">
       <Header />
-      <main className="container py-6">
+      <main className="container px-4 md:px-6 mx-auto py-6 max-w-6xl">
         <div className="flex flex-col gap-6">
           <div>
             <h1 className="text-2xl font-bold">Progress Overview</h1>
-            <p className="text-muted-foreground">Track your overall gym performance</p>
+            <p className="text-muted-foreground text-sm sm:text-base">Track your overall gym performance</p>
           </div>
 
           {/* Summary stats */}

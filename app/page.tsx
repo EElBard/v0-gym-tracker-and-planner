@@ -7,16 +7,16 @@ export default function HomePage() {
     <div className="flex flex-col min-h-svh">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center justify-between m-10">
+        <div className="container flex h-14 items-center justify-between px-4 md:px-6 mx-auto">
           <Link href="/" className="flex items-center gap-2">
             <Dumbbell className="h-6 w-6 text-primary" />
             <span className="font-bold">GymTracker</span>
           </Link>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
               <Link href="/auth/login">Sign in</Link>
             </Button>
-            <Button asChild>
+            <Button asChild size="sm">
               <Link href="/auth/sign-up">Get Started</Link>
             </Button>
           </div>
@@ -25,8 +25,8 @@ export default function HomePage() {
 
       {/* Hero */}
       <main className="flex-1">
-        <section className="container py-24 md:py-32">
-          <div className="flex flex-col items-center text-center gap-8 max-w-3xl mx-auto">
+        <section className="container px-4 md:px-6 mx-auto py-16 md:py-24 lg:py-32">
+          <div className="flex flex-col items-center text-center gap-6 md:gap-8 max-w-3xl mx-auto">
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
               <TrendingUp className="h-4 w-4" />
               Track. Progress. Improve.
@@ -50,12 +50,12 @@ export default function HomePage() {
         </section>
 
         {/* Features */}
-        <section className="border-t bg-muted/50 py-24">
-          <div className="container">
-            <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">
+        <section className="border-t bg-muted/50 py-16 md:py-24">
+          <div className="container px-4 md:px-6 mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">
               Everything you need to track your gains
             </h2>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
               <FeatureCard
                 icon={Dumbbell}
                 title="Machine Library"
@@ -76,9 +76,9 @@ export default function HomePage() {
         </section>
 
         {/* CTA */}
-        <section className="py-24">
-          <div className="container">
-            <div className="flex flex-col items-center text-center gap-6 max-w-2xl mx-auto">
+        <section className="py-16 md:py-24">
+          <div className="container px-4 md:px-6 mx-auto">
+            <div className="flex flex-col items-center text-center gap-4 md:gap-6 max-w-2xl mx-auto">
               <h2 className="text-2xl md:text-3xl font-bold">Ready to level up your training?</h2>
               <p className="text-muted-foreground">
                 Join GymTracker today and start logging your workouts. It's free to get started.
@@ -93,7 +93,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t py-6">
-        <div className="container flex items-center justify-between text-sm text-muted-foreground">
+        <div className="container px-4 md:px-6 mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Dumbbell className="h-4 w-4" />
             <span>GymTracker</span>

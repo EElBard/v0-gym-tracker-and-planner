@@ -90,8 +90,8 @@ export default async function MachineProgressPage({ params }: PageProps) {
   return (
     <div className="min-h-svh bg-background">
       <Header />
-      <main className="container py-6">
-        <div className="flex flex-col gap-6 max-w-4xl mx-auto">
+      <main className="container px-4 md:px-6 mx-auto py-6 max-w-4xl">
+        <div className="flex flex-col gap-6">
           <Link 
             href={`/machines/${id}`}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
@@ -100,12 +100,12 @@ export default async function MachineProgressPage({ params }: PageProps) {
             Back to {machine.name}
           </Link>
 
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold">{machine.name} Progress</h1>
-              <p className="text-muted-foreground">Track your strength gains over time</p>
+              <h1 className="text-xl sm:text-2xl font-bold">{machine.name} Progress</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">Track your strength gains over time</p>
             </div>
-            <Button asChild>
+            <Button asChild size="sm" className="w-fit">
               <Link href={`/workouts/new?machineId=${id}`}>Log Workout</Link>
             </Button>
           </div>
