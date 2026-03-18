@@ -16,6 +16,8 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Dumbbell } from 'lucide-react'
 
+import supabase
+
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -59,6 +61,15 @@ export default function SignUpPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `http://example.com/auth/callback`,
+      },
+    })
   }
 
   return (
@@ -125,6 +136,9 @@ export default function SignUpPage() {
                   </Link>
                 </div>
               </form>
+              <div id="google-shit" className='flex justify-center mt-5'>
+                <Button type='button' onClick={handleGoogle()}>Google OAuth</Button>
+              </div>
             </CardContent>
           </Card>
         </div>
