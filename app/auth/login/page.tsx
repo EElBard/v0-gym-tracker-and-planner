@@ -43,6 +43,16 @@ export default function LoginPage() {
     }
   }
 
+  const handleGoogleLogin = async () => {
+    const supabase = createClient()
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+  }
+
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
@@ -59,6 +69,14 @@ export default function LoginPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
+              >
+                Sign in with Google
+              </Button>
               <form onSubmit={handleLogin}>
                 <div className="flex flex-col gap-4">
                   <div className="grid gap-2">
