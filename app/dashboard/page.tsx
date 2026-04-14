@@ -108,54 +108,46 @@ export default async function DashboardPage() {
           </div>
 
           {/* Stats cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardContent className="p-4">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">
                   Workouts This Month
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </p>
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  <span className="text-2xl font-bold">{totalWorkoutsThisMonth}</span>
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                  <span className="text-xl sm:text-2xl font-bold">{totalWorkoutsThisMonth}</span>
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardContent className="p-4">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">
                   Days Active
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </p>
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  <span className="text-2xl font-bold">{uniqueDaysWorkedOut}</span>
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                  <span className="text-xl sm:text-2xl font-bold">{uniqueDaysWorkedOut}</span>
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardContent className="p-4">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">
                   Machines
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </p>
                 <div className="flex items-center gap-2">
-                  <Dumbbell className="h-5 w-5 text-primary" />
-                  <span className="text-2xl font-bold">{machineCount}</span>
+                  <Dumbbell className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                  <span className="text-xl sm:text-2xl font-bold">{machineCount}</span>
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardContent className="p-4">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">
                   Last Workout
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-lg font-semibold">
+                </p>
+                <p className="text-base sm:text-lg font-semibold truncate">
                   {recentWorkouts?.[0]
                     ? formatDistanceToNow(new Date(recentWorkouts[0].workout_date), { addSuffix: true })
                     : 'Never'}
