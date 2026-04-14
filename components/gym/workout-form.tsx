@@ -19,6 +19,9 @@ interface WorkoutFormProps {
   machineName: string
   suggestedWeight?: number | null
   suggestedReason?: string
+  previousWorkout?: {
+    sets: { reps: number; weight_lbs: number }[]
+  } | null
 }
 
 interface WorkoutTemplate {
@@ -30,7 +33,7 @@ interface WorkoutTemplate {
 const getTemplateKey = (machineId: string) => `gym-template-${machineId}`
 const getBodyweightKey = (machineId: string) => `gym-bodyweight-${machineId}`
 
-export function WorkoutForm({ machineId, machineName, suggestedWeight, suggestedReason }: WorkoutFormProps) {
+export function WorkoutForm({ machineId, machineName, suggestedWeight, suggestedReason, previousWorkout }: WorkoutFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isBodyweight, setIsBodyweight] = useState(false)
@@ -69,7 +72,7 @@ export function WorkoutForm({ machineId, machineName, suggestedWeight, suggested
       machine_id: machineId,
       workout_date: new Date().toISOString().split('T')[0],
       notes: '',
-      sets: [{ reps: 10, weight_lbs: suggestedWeight ?? 0 }],
+      sets: previousWorkout?.sets ?? [{ reps: 10, weight_lbs: suggestedWeight ?? 0 }],
     },
   })
 

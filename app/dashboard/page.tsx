@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MachineCard } from '@/components/gym/machine-card'
 import { MuscleCoverageCard } from '@/components/gym/muscle-coverage-card'
 import { analyzeMuscleGroupCoverage } from '@/lib/utils/muscle-coverage'
-import { Plus, Dumbbell, TrendingUp, Calendar } from 'lucide-react'
+import { Plus, Dumbbell, TrendingUp, Calendar, Zap } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
 export default async function DashboardPage() {
@@ -99,12 +99,20 @@ export default async function DashboardPage() {
               <h1 className="text-2xl font-bold">Dashboard</h1>
               <p className="text-muted-foreground text-sm sm:text-base">Track your progress and stay consistent</p>
             </div>
-            <Button asChild size="sm" className="w-fit">
-              <Link href="/machines/new">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Machine
-              </Link>
-            </Button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button asChild className="flex-1 sm:flex-none">
+                <Link href="/session/live">
+                  <Zap className="h-4 w-4 mr-2" />
+                  Start Workout
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="outline" className="w-fit">
+                <Link href="/machines/new">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Machine
+                </Link>
+              </Button>
+            </div>
           </div>
 
           {/* Stats cards */}
