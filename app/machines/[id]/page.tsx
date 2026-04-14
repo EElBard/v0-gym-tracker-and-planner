@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MuscleGroupBadge } from '@/components/gym/muscle-group-badge'
 import { WorkoutHistory } from '@/components/gym/workout-history'
 import { calculateWeightSuggestion } from '@/lib/utils/weight-suggestion'
-import { Dumbbell, Edit, Plus, TrendingUp, ArrowLeft } from 'lucide-react'
+import { Dumbbell, Edit, Plus, TrendingUp, ArrowLeft, Bookmark } from 'lucide-react'
+import { SaveTemplateButton } from '@/components/gym/save-template-button'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -167,15 +168,25 @@ export default async function MachineDetailPage({ params }: PageProps) {
           {/* Weight suggestion */}
           {suggestedWeight !== null && (
             <Card className="border-primary/50 bg-primary/5">
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
-                  <TrendingUp className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="font-semibold text-primary">
-                    Suggested Weight: {suggestedWeight} lbs
-                  </p>
-                  <p className="text-sm text-muted-foreground">{reason}</p>
+              <CardContent className="p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 shrink-0">
+                      <TrendingUp className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-primary">
+                        Suggested Weight: {suggestedWeight} lbs
+                      </p>
+                      <p className="text-sm text-muted-foreground">{reason}</p>
+                    </div>
+                  </div>
+                  <SaveTemplateButton 
+                    machineId={id} 
+                    suggestedWeight={suggestedWeight}
+                    defaultReps={10}
+                    defaultSetCount={3}
+                  />
                 </div>
               </CardContent>
             </Card>

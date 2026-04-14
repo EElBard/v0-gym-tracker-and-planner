@@ -3,6 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Header } from '@/components/layout/header'
 import { MachineForm } from '@/components/gym/machine-form'
+import { DeleteMachineButton } from '@/components/gym/delete-machine-button'
 import { ArrowLeft } from 'lucide-react'
 
 interface PageProps {
@@ -62,6 +63,17 @@ export default async function EditMachinePage({ params }: PageProps) {
             </p>
           </div>
           <MachineForm machine={formattedMachine} />
+          
+          {/* Danger zone */}
+          <div className="border-t pt-6 mt-4">
+            <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4">
+              <h3 className="text-lg font-semibold text-destructive mb-2">Danger Zone</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Deleting this machine will permanently remove all associated workouts and data.
+              </p>
+              <DeleteMachineButton machineId={id} machineName={machine.name} />
+            </div>
+          </div>
         </div>
       </main>
     </div>
