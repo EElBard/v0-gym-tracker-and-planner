@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -34,7 +34,7 @@ interface PreviousWorkout {
   sets: SessionSet[]
 }
 
-export default function LiveWorkoutPage() {
+function LiveWorkoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [step, setStep] = useState<Step>('select-machine')
@@ -443,5 +443,24 @@ export default function LiveWorkoutPage() {
         )}
       </main>
     </div>
+  )
+}
+
+export default function LiveWorkoutPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-svh bg-background">
+          <Header />
+          <main className="container px-4 md:px-6 mx-auto py-6 max-w-2xl">
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          </main>
+        </div>
+      }
+    >
+      <LiveWorkoutContent />
+    </Suspense>
   )
 }
