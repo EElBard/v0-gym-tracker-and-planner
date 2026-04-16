@@ -9,6 +9,9 @@ export const machineSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name must be 100 characters or less"),
   notes: z.string().max(500, "Notes must be 500 characters or less").optional().nullable(),
   muscle_groups: z.array(muscleGroupSchema).min(1, "Select at least one muscle group"),
+  target_sets: z.coerce.number().min(1, "At least 1 set").max(50, "Max 50 sets").optional(),
+  target_reps: z.coerce.number().min(1, "At least 1 rep").max(999, "Max 999 reps").optional(),
+  weight_increment: z.coerce.number().min(0.5, "Min 0.5 lbs").max(100, "Max 100 lbs").optional(),
 })
 
 export const workoutSetSchema = z.object({

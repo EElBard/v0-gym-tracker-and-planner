@@ -52,7 +52,12 @@ export function MachineCard({ machine }: MachineCardProps) {
         </div>
         {machine.last_workout_date && (
           <p className="text-xs text-muted-foreground">
-            Last workout: {formatDistanceToNow(new Date(machine.last_workout_date), { addSuffix: true })}
+            {(() => {
+              const date = new Date(machine.last_workout_date)
+              const today = new Date()
+              const isToday = date.toDateString() === today.toDateString()
+              return `Last workout: ${isToday ? 'Today' : formatDistanceToNow(date, { addSuffix: true })}`
+            })()}
           </p>
         )}
       </CardContent>

@@ -44,6 +44,9 @@ export function MachineForm({ machine }: MachineFormProps) {
       name: machine?.name ?? '',
       notes: machine?.notes ?? '',
       muscle_groups: machine?.muscle_groups ?? [],
+      target_sets: (machine as any)?.target_sets ?? 3,
+      target_reps: (machine as any)?.target_reps ?? 10,
+      weight_increment: (machine as any)?.weight_increment ?? 5.0,
     },
   })
 
@@ -99,6 +102,9 @@ export function MachineForm({ machine }: MachineFormProps) {
             name: data.name,
             notes: data.notes || null,
             photo_pathname: photoPathname,
+            target_sets: data.target_sets || 3,
+            target_reps: data.target_reps || 10,
+            weight_increment: data.weight_increment || 5.0,
             updated_at: new Date().toISOString(),
           })
           .eq('id', machine.id)
@@ -135,6 +141,9 @@ export function MachineForm({ machine }: MachineFormProps) {
             name: data.name,
             notes: data.notes || null,
             photo_pathname: photoPathname,
+            target_sets: data.target_sets || 3,
+            target_reps: data.target_reps || 10,
+            weight_increment: data.weight_increment || 5.0,
           })
           .select()
           .single()
@@ -230,6 +239,59 @@ export function MachineForm({ machine }: MachineFormProps) {
           onChange={(selected) => setValue('muscle_groups', selected, { shouldValidate: true })}
           error={errors.muscle_groups?.message}
         />
+      </div>
+
+      {/* Progression Targets */}
+      <div className="space-y-3">
+        <Label>Progression Targets</Label>
+        <p className="text-sm text-muted-foreground">
+          Set your goals for this machine. These help track progress and suggest weight increases.
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="target_sets" className="text-sm">Target Sets</Label>
+            <Input
+              id="target_sets"
+              type="number"
+              min={1}
+              max={50}
+              placeholder="3"
+              {...register('target_sets')}
+            />
+            {errors.target_sets && (
+              <p className="text-xs text-destructive">{errors.target_sets.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="target_reps" className="text-sm">Target Reps</Label>
+            <Input
+              id="target_reps"
+              type="number"
+              min={1}
+              max={999}
+              placeholder="10"
+              {...register('target_reps')}
+            />
+            {errors.target_reps && (
+              <p className="text-xs text-destructive">{errors.target_reps.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="weight_increment" className="text-sm">Weight Increment (lbs)</Label>
+            <Input
+              id="weight_increment"
+              type="number"
+              min={0.5}
+              step={0.5}
+              max={100}
+              placeholder="5.0"
+              {...register('weight_increment')}
+            />
+            {errors.weight_increment && (
+              <p className="text-xs text-destructive">{errors.weight_increment.message}</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Notes */}
