@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar, ChevronRight, Dumbbell, Layers, Weight } from 'lucide-react'
+import { SessionActions } from './session-actions'
 
 type SessionRow = {
   id: string
@@ -132,12 +133,15 @@ export default async function SessionsPage() {
                           </span>
                         </div>
                       </div>
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/workouts/${session.id}`}>
-                          Details
-                          <ChevronRight className="h-4 w-4 ml-1" />
-                        </Link>
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/workouts/${session.id}`}>
+                            Details
+                            <ChevronRight className="h-4 w-4 ml-1" />
+                          </Link>
+                        </Button>
+                        <SessionActions sessionId={session.id} initialDate={session.sessionDate} />
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
