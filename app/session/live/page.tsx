@@ -32,6 +32,7 @@ interface Machine {
   target_sets: number
   target_reps: number
   weight_increment: number
+  muscle_groups: { muscle_group_id: string; is_primary: boolean }[]
 }
 
 function LiveWorkoutContent() {
@@ -64,7 +65,7 @@ function LiveWorkoutContent() {
         // Fetch machines
         const { data: machinesList, error: machinesError } = await supabase
           .from('machines')
-          .select('id, name, target_sets, target_reps, weight_increment')
+          .select('id, name, target_sets, target_reps, weight_increment, muscle_groups(muscle_group_id, is_primary)')
           .eq('user_id', user.id)
           .order('updated_at', { ascending: false })
 
@@ -312,6 +313,45 @@ function LiveWorkoutContent() {
     router.push(`/machines/${selectedMachine?.id}`)
   }
 
+  const groupedMachines = machines.reduce<Record<string, Machine[]>>((groups, machine) => {
+    const primaryMuscleGroup = machine.muscle_groups.find(group => group.is_primary)?.muscle_group_id ?? 'other'
+    if (!groups[primaryMuscleGroup]) {
+      groups[primaryMuscleGroup] = []
+    }
+    groups[primaryMuscleGroup].push(machine)
+    return groups
+  }, {})
+
+  const muscleGroupOrder = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'quadriceps', 'hamstrings', 'glutes', 'calves', 'core', 'forearms', 'other']
+  const orderedGroupKeys = Object.keys(groupedMachines).sort((a, b) => {
+    const indexA = muscleGroupOrder.indexOf(a)
+    const indexB = muscleGroupOrder.indexOf(b)
+    const safeIndexA = indexA === -1 ? Number.MAX_SAFE_INTEGER : indexA
+    const safeIndexB = indexB === -1 ? Number.MAX_SAFE_INTEGER : indexB
+    if (safeIndexA !== safeIndexB) return safeIndexA - safeIndexB
+    return a.localeCompare(b)
+  })
+
+  const formatMuscleGroupLabel = (value: string) =>
+    value
+      .split('_')
+      .map(part => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+      .join(' ')
+
+  const handleBack = () => {
+    if (step === 'logging') {
+      setStep('select-machine')
+      return
+    }
+
+    if (step === 'complete') {
+      router.push(`/machines/${selectedMachine?.id}`)
+      return
+    }
+
+    router.back()
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-svh bg-background">
@@ -335,7 +375,7 @@ function LiveWorkoutContent() {
             variant="ghost"
             size="sm"
             className="mb-4"
-            onClick={() => router.back()}
+            onClick={handleBack}
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back
@@ -370,19 +410,28 @@ function LiveWorkoutContent() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-3">
-                {machines.map(machine => (
-                  <Button
-                    key={machine.id}
-                    onClick={() => selectMachine(machine)}
-                    variant="outline"
-                    className="h-auto p-4 text-left"
-                  >
-                    <div className="text-lg font-semibold">{machine.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      Target: {machine.target_sets}x{machine.target_reps}
+              <div className="space-y-6">
+                {orderedGroupKeys.map(groupKey => (
+                  <div key={groupKey} className="space-y-3">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                      {formatMuscleGroupLabel(groupKey)}
+                    </h3>
+                    <div className="grid gap-3">
+                      {groupedMachines[groupKey].map(machine => (
+                        <Button
+                          key={machine.id}
+                          onClick={() => selectMachine(machine)}
+                          variant="outline"
+                          className="h-auto p-4 text-left"
+                        >
+                          <div className="text-lg font-semibold">{machine.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Target: {machine.target_sets}x{machine.target_reps}
+                          </div>
+                        </Button>
+                      ))}
                     </div>
-                  </Button>
+                  </div>
                 ))}
               </div>
             )}
