@@ -4,13 +4,13 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
+  --background: oklch(0.98 0.005 240);
   --foreground: oklch(0.13 0.02 260);
-  --card: oklch(0.98 0.01 240);
+  --card: oklch(1 0 0);
   --card-foreground: oklch(0.13 0.02 260);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.13 0.02 260);
-  --primary: oklch(0.5 0.15 240);
+  --primary: oklch(0.55 0.2 250);
   --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.95 0.01 240);
   --secondary-foreground: oklch(0.25 0.02 260);
@@ -22,21 +22,21 @@
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.9 0.01 240);
   --input: oklch(0.9 0.01 240);
-  --ring: oklch(0.5 0.15 240);
-  --chart-1: oklch(0.5 0.15 240);
+  --ring: oklch(0.55 0.2 250);
+  --chart-1: oklch(0.55 0.2 250);
   --chart-2: oklch(0.65 0.18 150);
   --chart-3: oklch(0.6 0.2 30);
   --chart-4: oklch(0.7 0.15 80);
   --chart-5: oklch(0.55 0.22 320);
   --radius: 0.625rem;
-  --sidebar: oklch(0.98 0.01 240);
+  --sidebar: oklch(0.98 0.005 240);
   --sidebar-foreground: oklch(0.13 0.02 260);
-  --sidebar-primary: oklch(0.5 0.15 240);
+  --sidebar-primary: oklch(0.55 0.2 250);
   --sidebar-primary-foreground: oklch(0.98 0 0);
   --sidebar-accent: oklch(0.92 0.02 240);
   --sidebar-accent-foreground: oklch(0.25 0.02 260);
   --sidebar-border: oklch(0.9 0.01 240);
-  --sidebar-ring: oklch(0.5 0.15 240);
+  --sidebar-ring: oklch(0.55 0.2 250);
   
   /* Custom colors for muscle groups */
   --muscle-chest: oklch(0.65 0.2 15);
@@ -49,42 +49,42 @@
 }
 
 .dark {
-  --background: oklch(0.08 0.01 260);
+  --background: oklch(0.12 0.02 260);
   --foreground: oklch(0.95 0.01 240);
-  --card: oklch(0.11 0.02 260);
+  --card: oklch(0.16 0.02 260);
   --card-foreground: oklch(0.95 0.01 240);
-  --popover: oklch(0.08 0.01 260);
+  --popover: oklch(0.16 0.02 260);
   --popover-foreground: oklch(0.95 0.01 240);
-  --primary: oklch(0.75 0.18 210);
-  --primary-foreground: oklch(0.1 0.05 220);
-  --secondary: oklch(0.15 0.03 260);
+  --primary: oklch(0.65 0.2 250);
+  --primary-foreground: oklch(0.1 0 0);
+  --secondary: oklch(0.22 0.02 260);
   --secondary-foreground: oklch(0.95 0.01 240);
-  --muted: oklch(0.15 0.03 260);
+  --muted: oklch(0.22 0.02 260);
   --muted-foreground: oklch(0.65 0.02 260);
-  --accent: oklch(0.18 0.04 260);
+  --accent: oklch(0.25 0.03 260);
   --accent-foreground: oklch(0.95 0.01 240);
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.18 0.04 260);
-  --input: oklch(0.15 0.03 260);
-  --ring: oklch(0.75 0.18 210);
-  --chart-1: oklch(0.75 0.18 210);
+  --border: oklch(0.25 0.02 260);
+  --input: oklch(0.22 0.02 260);
+  --ring: oklch(0.65 0.2 250);
+  --chart-1: oklch(0.65 0.2 250);
   --chart-2: oklch(0.7 0.18 150);
   --chart-3: oklch(0.65 0.2 30);
   --chart-4: oklch(0.75 0.15 80);
   --chart-5: oklch(0.6 0.22 320);
-  --sidebar: oklch(0.09 0.02 260);
+  --sidebar: oklch(0.14 0.02 260);
   --sidebar-foreground: oklch(0.95 0.01 240);
-  --sidebar-primary: oklch(0.75 0.18 210);
-  --sidebar-primary-foreground: oklch(0.1 0.05 220);
-  --sidebar-accent: oklch(0.15 0.03 260);
+  --sidebar-primary: oklch(0.65 0.2 250);
+  --sidebar-primary-foreground: oklch(0.1 0 0);
+  --sidebar-accent: oklch(0.22 0.02 260);
   --sidebar-accent-foreground: oklch(0.95 0.01 240);
-  --sidebar-border: oklch(0.18 0.04 260);
-  --sidebar-ring: oklch(0.75 0.18 210);
+  --sidebar-border: oklch(0.25 0.02 260);
+  --sidebar-ring: oklch(0.65 0.2 250);
 }
 
 @theme inline {
-  --font-sans: 'Outfit', 'Inter', 'Geist', 'Geist Fallback', sans-serif;
+  --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -129,18 +129,6 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground selection:bg-primary/20 selection:text-primary;
+    @apply bg-background text-foreground;
   }
-}
-
-@utility glass {
-  @apply bg-background/60 backdrop-blur-xl border border-white/10 dark:border-white/5;
-}
-
-@utility text-gradient {
-  @apply bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent;
-}
-
-@utility glow {
-  box-shadow: 0 0 20px -5px var(--primary);
 }

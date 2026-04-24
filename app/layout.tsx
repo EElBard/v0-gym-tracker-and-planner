@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from 'next'
-import { Outfit, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const _outfit = Outfit({ subsets: ["latin"] });
+const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -36,19 +36,15 @@ export const viewport: Viewport = {
   ],
 }
 
-import { ThemeProvider } from '@/components/theme-provider'
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${_outfit.className} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          {children}
-        </ThemeProvider>
+    <html lang="en">
+      <body className="font-sans antialiased">
+        {children}
         <Analytics />
       </body>
     </html>
