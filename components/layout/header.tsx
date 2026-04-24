@@ -11,12 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Dumbbell, LayoutDashboard, ListPlus, TrendingUp, User, LogOut, Menu } from 'lucide-react'
+import { Dumbbell, LayoutDashboard, ListPlus, TrendingUp, User, LogOut, Menu, History } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/machines', label: 'Machines', icon: ListPlus },
+  { href: '/sessions', label: 'Sessions', icon: History },
   { href: '/progress', label: 'Progress', icon: TrendingUp },
 ]
 

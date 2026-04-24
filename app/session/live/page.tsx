@@ -356,6 +356,8 @@ function LiveWorkoutContent() {
       .map(part => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
       .join(' ')
 
+  const loggedMachineIds = new Set(loggedExercises.map(exercise => exercise.machine.id))
+
   const handleBack = () => {
     if (step === 'logging') {
       setStep('select-machine')
@@ -435,19 +437,37 @@ function LiveWorkoutContent() {
                       {formatMuscleGroupLabel(groupKey)}
                     </h3>
                     <div className="grid gap-3">
-                      {groupedMachines[groupKey].map(machine => (
-                        <Button
-                          key={machine.id}
-                          onClick={() => selectMachine(machine)}
-                          variant="outline"
-                          className="h-auto p-4 text-left"
-                        >
-                          <div className="text-lg font-semibold">{machine.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            Target: {machine.target_sets}x{machine.target_reps}
-                          </div>
-                        </Button>
-                      ))}
+                      {groupedMachines[groupKey].map(machine => {
+                        const isLoggedInSession = loggedMachineIds.has(machine.id)
+
+                        return (
+                          <Button
+                            key={machine.id}
+                            onClick={() => selectMachine(machine)}
+                            variant="outline"
+                            className={`h-auto p-4 text-left justify-start ${
+                              isLoggedInSession
+                                ? 'border-primary/60 bg-primary/5 hover:bg-primary/10'
+                                : ''
+                            }`}
+                          >
+                            <div className="w-full">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="text-lg font-semibold">{machine.name}</div>
+                                {isLoggedInSession && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                    In session
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Target: {machine.target_sets}x{machine.target_reps}
+                              </div>
+                            </div>
+                          </Button>
+                        )
+                      })}
                     </div>
                   </div>
                 ))}
