@@ -35,6 +35,15 @@ interface Machine {
   muscle_groups: { muscle_group_id: string; is_primary: boolean }[]
 }
 
+interface MachineRow {
+  id: string
+  name: string
+  target_sets: number
+  target_reps: number
+  weight_increment: number
+  machine_muscle_groups: { muscle_group_id: string; is_primary: boolean }[] | null
+}
+
 function LiveWorkoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -65,17 +74,26 @@ function LiveWorkoutContent() {
         // Fetch machines
         const { data: machinesList, error: machinesError } = await supabase
           .from('machines')
-          .select('id, name, target_sets, target_reps, weight_increment, muscle_groups(muscle_group_id, is_primary)')
+          .select('id, name, target_sets, target_reps, weight_increment, machine_muscle_groups(muscle_group_id, is_primary)')
           .eq('user_id', user.id)
           .order('updated_at', { ascending: false })
 
         if (machinesError) throw machinesError
-        setMachines(machinesList || [])
+        const formattedMachines = ((machinesList ?? []) as MachineRow[]).map(machine => ({
+          id: machine.id,
+          name: machine.name,
+          target_sets: machine.target_sets,
+          target_reps: machine.target_reps,
+          weight_increment: machine.weight_increment,
+          muscle_groups: machine.machine_muscle_groups ?? [],
+        }))
+        setMachines(formattedMachines)
+        setError(null)
 
         // If machineId is in query params, auto-select it
         const machineId = searchParams.get('machineId')
-        if (machineId && machinesList) {
-          const machine = machinesList.find(m => m.id === machineId)
+        if (machineId && formattedMachines.length > 0) {
+          const machine = formattedMachines.find(m => m.id === machineId)
           if (machine) {
             selectMachine(machine, user.id)
           }
