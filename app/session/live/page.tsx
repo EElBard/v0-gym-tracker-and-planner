@@ -21,6 +21,11 @@ interface SessionSet {
   weight_lbs: number
 }
 
+interface LoggedExercise {
+  machine: Machine
+  sets: SessionSet[]
+}
+
 interface Machine {
   id: string
   name: string
@@ -36,6 +41,7 @@ function LiveWorkoutContent() {
   const [machines, setMachines] = useState<Machine[]>([])
   const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null)
   const [sessionSets, setSessionSets] = useState<SessionSet[]>([])
+  const [loggedExercises, setLoggedExercises] = useState<LoggedExercise[]>([])
   const [showRestTimer, setShowRestTimer] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -88,6 +94,13 @@ function LiveWorkoutContent() {
     const userId = userIdOverride ?? currentUserId
     if (!userId) return
     setSelectedMachine(machine)
+
+    const alreadyLoggedExercise = loggedExercises.find(exercise => exercise.machine.id === machine.id)
+    if (alreadyLoggedExercise) {
+      setSessionSets(alreadyLoggedExercise.sets)
+      setStep('logging')
+      return
+    }
 
     // Fetch previous workout for this machine
     try {
@@ -153,9 +166,44 @@ function LiveWorkoutContent() {
     setSessionSets(newSets)
   }
 
+  const normalizeSets = (sets: SessionSet[]) =>
+    sets.map((set, index) => ({
+      set_number: index + 1,
+      reps: set.reps,
+      weight_lbs: set.weight_lbs,
+    }))
+
+  const saveCurrentMachineToSession = () => {
+    if (!selectedMachine || sessionSets.length === 0) {
+      setError('Please log at least one set before adding a machine')
+      return false
+    }
+
+    const normalizedSets = normalizeSets(sessionSets)
+
+    setLoggedExercises(prev => {
+      const existingIndex = prev.findIndex(exercise => exercise.machine.id === selectedMachine.id)
+      if (existingIndex === -1) {
+        return [...prev, { machine: selectedMachine, sets: normalizedSets }]
+      }
+
+      const updated = [...prev]
+      updated[existingIndex] = { machine: selectedMachine, sets: normalizedSets }
+      return updated
+    })
+    setSessionSets(normalizedSets)
+    setError(null)
+    return true
+  }
+
+  const handleAddAnotherMachine = () => {
+    if (!saveCurrentMachineToSession()) return
+    setStep('select-machine')
+  }
+
   const handleSubmit = async () => {
     if (!selectedMachine || sessionSets.length === 0) {
-      setError('Please log at least one set')
+      setError('Please log at least one set before completing your session')
       return
     }
 
@@ -165,6 +213,21 @@ function LiveWorkoutContent() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
+
+      const currentExercise: LoggedExercise = {
+        machine: selectedMachine,
+        sets: normalizeSets(sessionSets),
+      }
+
+      const sessionExercisesMap = new Map(
+        loggedExercises.map(exercise => [exercise.machine.id, exercise] as const)
+      )
+      sessionExercisesMap.set(currentExercise.machine.id, currentExercise)
+      const allSessionExercises = Array.from(sessionExercisesMap.values())
+
+      if (allSessionExercises.length === 0) {
+        throw new Error('No exercises to save')
+      }
 
       // Create session
       const { data: session, error: sessionError } = await supabase
@@ -178,61 +241,62 @@ function LiveWorkoutContent() {
 
       if (sessionError) throw sessionError
 
-      // Create exercise (new normalized schema)
-      const { data: workoutExercise, error: exerciseError } = await supabase
-        .from('workout_exercises')
-        .insert({
-          session_id: session.id,
-          machine_id: selectedMachine.id,
-          display_order: 0,
-        })
-        .select()
-        .single()
-
-      // If the new schema is not fully applied yet, fallback to legacy workouts flow
-      if (exerciseError || !workoutExercise) {
-        const { data: workout, error: workoutError } = await supabase
-          .from('workouts')
+      for (const [index, exercise] of allSessionExercises.entries()) {
+        // Create exercise (new normalized schema)
+        const { data: workoutExercise, error: exerciseError } = await supabase
+          .from('workout_exercises')
           .insert({
-            user_id: user.id,
-            machine_id: selectedMachine.id,
-            workout_date: new Date().toISOString().split('T')[0],
             session_id: session.id,
+            machine_id: exercise.machine.id,
+            display_order: index,
           })
           .select()
           .single()
 
-        if (workoutError || !workout) throw workoutError ?? new Error('Failed to create legacy workout')
+        // If the new schema is not fully applied yet, fallback to legacy workouts flow
+        if (exerciseError || !workoutExercise) {
+          const { data: workout, error: workoutError } = await supabase
+            .from('workouts')
+            .insert({
+              user_id: user.id,
+              machine_id: exercise.machine.id,
+              workout_date: new Date().toISOString().split('T')[0],
+              session_id: session.id,
+            })
+            .select()
+            .single()
 
-        const { error: legacySetsError } = await supabase
+          if (workoutError || !workout) throw workoutError ?? new Error('Failed to create legacy workout')
+
+          const { error: legacySetsError } = await supabase
+            .from('workout_sets')
+            .insert(
+              exercise.sets.map(set => ({
+                workout_id: workout.id,
+                set_number: set.set_number,
+                reps: set.reps,
+                weight_lbs: set.weight_lbs,
+              }))
+            )
+
+          if (legacySetsError) throw legacySetsError
+          continue
+        }
+
+        // Create sets
+        const { error: setsError } = await supabase
           .from('workout_sets')
           .insert(
-            sessionSets.map(set => ({
-              workout_id: workout.id,
+            exercise.sets.map(set => ({
+              exercise_id: workoutExercise.id,
               set_number: set.set_number,
               reps: set.reps,
               weight_lbs: set.weight_lbs,
             }))
           )
 
-        if (legacySetsError) throw legacySetsError
-        setStep('complete')
-        return
+        if (setsError) throw setsError
       }
-
-      // Create sets
-      const { error: setsError } = await supabase
-        .from('workout_sets')
-        .insert(
-          sessionSets.map(set => ({
-            exercise_id: workoutExercise.id,
-            set_number: set.set_number,
-            reps: set.reps,
-            weight_lbs: set.weight_lbs,
-          }))
-        )
-
-      if (setsError) throw setsError
 
       setStep('complete')
     } catch (err) {
@@ -329,15 +393,25 @@ function LiveWorkoutContent() {
         {step === 'logging' && selectedMachine && (
           <div className="space-y-6">
             <div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setStep('select-machine')}
-                className="mb-3"
-              >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                Change Machine
-              </Button>
+              {loggedExercises.length > 0 && (
+                <div className="mb-3 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">Machines in this session</p>
+                  <div className="flex flex-wrap gap-2">
+                    {loggedExercises.map(exercise => (
+                      <div
+                        key={exercise.machine.id}
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${
+                          exercise.machine.id === selectedMachine.id
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
+                        {exercise.machine.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <h2 className="text-2xl font-bold">{selectedMachine.name}</h2>
             </div>
 
@@ -441,6 +515,15 @@ function LiveWorkoutContent() {
             {/* Actions */}
             <div className="flex gap-3">
               <Button
+                variant="outline"
+                onClick={handleAddAnotherMachine}
+                disabled={isSubmitting}
+                className="flex-1"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Machine to Session
+              </Button>
+              <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
                 className="flex-1"
@@ -450,13 +533,7 @@ function LiveWorkoutContent() {
                 ) : (
                   <Save className="h-4 w-4 mr-2" />
                 )}
-                Save Workout
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setStep('select-machine')}
-              >
-                Cancel
+                Complete Session
               </Button>
             </div>
           </div>
@@ -469,7 +546,7 @@ function LiveWorkoutContent() {
               <CheckCircle2 className="h-12 w-12 text-green-600 mb-4" />
               <h2 className="text-2xl font-bold mb-2">Workout Saved!</h2>
               <p className="text-muted-foreground mb-6">
-                Great job! Your workout for {selectedMachine.name} has been recorded.
+                Great job! Your full workout session has been recorded.
               </p>
               <Button onClick={handleComplete} className="w-full">
                 View Machine Details
