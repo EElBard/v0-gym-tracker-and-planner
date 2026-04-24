@@ -149,7 +149,7 @@ export function WorkoutForm({ machineId, machineName, suggestedWeight, suggested
 
       if (sessionError) throw sessionError
 
-      // 2. Create exercise entry for the selected machine
+      // 2. Create exercise entry for the selected machine (new normalized schema)
       const { data: workoutExercise, error: exerciseError } = await supabase
         .from('workout_exercises')
         .insert({
@@ -160,7 +160,39 @@ export function WorkoutForm({ machineId, machineName, suggestedWeight, suggested
         .select()
         .single()
 
-      if (exerciseError) throw exerciseError
+      // If the new schema is not fully applied yet, fallback to legacy workouts flow
+      if (exerciseError || !workoutExercise) {
+        const { data: workout, error: workoutError } = await supabase
+          .from('workouts')
+          .insert({
+            user_id: user.id,
+            machine_id: data.machine_id,
+            workout_date: data.workout_date,
+            notes: data.notes || null,
+            session_id: session.id,
+          })
+          .select()
+          .single()
+
+        if (workoutError || !workout) throw workoutError ?? new Error('Failed to create legacy workout')
+
+        const legacySetsToInsert = data.sets.map((set, index) => ({
+          workout_id: workout.id,
+          set_number: index + 1,
+          reps: set.reps,
+          weight_lbs: isBodyweight ? 0 : set.weight_lbs,
+        }))
+
+        const { error: legacySetsError } = await supabase
+          .from('workout_sets')
+          .insert(legacySetsToInsert)
+
+        if (legacySetsError) throw legacySetsError
+
+        router.push(`/machines/${machineId}`)
+        router.refresh()
+        return
+      }
 
       // 3. Create sets - force weight to 0 if bodyweight
       const setsToInsert = data.sets.map((set, index) => ({
@@ -180,7 +212,8 @@ export function WorkoutForm({ machineId, machineName, suggestedWeight, suggested
       router.refresh()
     } catch (error) {
       console.error('Error saving workout:', error)
-      alert('Failed to save workout. Please try again.')
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      alert(`Failed to save workout: ${message}`)
     } finally {
       setIsSubmitting(false)
     }

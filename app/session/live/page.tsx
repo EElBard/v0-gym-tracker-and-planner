@@ -178,7 +178,7 @@ function LiveWorkoutContent() {
 
       if (sessionError) throw sessionError
 
-      // Create exercise
+      // Create exercise (new normalized schema)
       const { data: workoutExercise, error: exerciseError } = await supabase
         .from('workout_exercises')
         .insert({
@@ -189,7 +189,36 @@ function LiveWorkoutContent() {
         .select()
         .single()
 
-      if (exerciseError) throw exerciseError
+      // If the new schema is not fully applied yet, fallback to legacy workouts flow
+      if (exerciseError || !workoutExercise) {
+        const { data: workout, error: workoutError } = await supabase
+          .from('workouts')
+          .insert({
+            user_id: user.id,
+            machine_id: selectedMachine.id,
+            workout_date: new Date().toISOString().split('T')[0],
+            session_id: session.id,
+          })
+          .select()
+          .single()
+
+        if (workoutError || !workout) throw workoutError ?? new Error('Failed to create legacy workout')
+
+        const { error: legacySetsError } = await supabase
+          .from('workout_sets')
+          .insert(
+            sessionSets.map(set => ({
+              workout_id: workout.id,
+              set_number: set.set_number,
+              reps: set.reps,
+              weight_lbs: set.weight_lbs,
+            }))
+          )
+
+        if (legacySetsError) throw legacySetsError
+        setStep('complete')
+        return
+      }
 
       // Create sets
       const { error: setsError } = await supabase
@@ -207,7 +236,8 @@ function LiveWorkoutContent() {
 
       setStep('complete')
     } catch (err) {
-      setError('Failed to save workout')
+      const message = err instanceof Error ? err.message : 'Failed to save workout'
+      setError(`Failed to save workout: ${message}`)
       console.error(err)
     } finally {
       setIsSubmitting(false)
