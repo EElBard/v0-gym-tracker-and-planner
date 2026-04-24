@@ -30,19 +30,22 @@ export default async function MachineProgressPage({ params }: PageProps) {
   if (error || !machine) notFound()
 
   // Fetch all workouts with sets for this machine
-  const { data: workouts } = await supabase
-    .from('workouts')
+  const { data: sessions } = await supabase
+    .from('workout_sessions')
     .select(`
       id,
-      workout_date,
-      workout_sets (
-        reps,
-        weight_lbs
+      session_date,
+      workout_exercises!inner (
+        machine_id,
+        workout_sets (
+          reps,
+          weight_lbs
+        )
       )
     `)
-    .eq('machine_id', id)
     .eq('user_id', user.id)
-    .order('workout_date', { ascending: true })
+    .eq('workout_exercises.machine_id', id)
+    .order('session_date', { ascending: true })
 
   // Process data for charts
   const weightData: { date: string; value: number }[] = []
@@ -54,8 +57,9 @@ export default async function MachineProgressPage({ params }: PageProps) {
   let maxVolumeEver = 0
   let currentEstimated1RM = 0
 
-  ;(workouts || []).forEach(workout => {
-    const sets = (workout.workout_sets || []).map(s => ({
+  ;(sessions || []).forEach(session => {
+    const exercise = session.workout_exercises?.[0]
+    const sets = (exercise?.workout_sets || []).map(s => ({
       reps: s.reps,
       weight_lbs: Number(s.weight_lbs),
     }))
@@ -73,9 +77,9 @@ export default async function MachineProgressPage({ params }: PageProps) {
       ? calculateEstimated1RM(maxWeightSet.weight_lbs, maxWeightSet.reps)
       : 0
 
-    weightData.push({ date: workout.workout_date, value: maxWeight })
-    volumeData.push({ date: workout.workout_date, value: volume })
-    oneRMData.push({ date: workout.workout_date, value: estimated1RM })
+    weightData.push({ date: session.session_date, value: maxWeight })
+    volumeData.push({ date: session.session_date, value: volume })
+    oneRMData.push({ date: session.session_date, value: estimated1RM })
 
     maxWeightEver = Math.max(maxWeightEver, maxWeight)
     maxVolumeEver = Math.max(maxVolumeEver, volume)

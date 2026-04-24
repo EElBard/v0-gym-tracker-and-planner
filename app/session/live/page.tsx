@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label'
 import { Header } from '@/components/layout/header'
 import { RestTimer } from '@/components/gym/rest-timer'
 import { SessionHistory } from '@/components/gym/session-history'
-import { analyzeProgression } from '@/lib/utils/progression'
 import { ChevronLeft, Plus, Save, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -30,10 +29,6 @@ interface Machine {
   weight_increment: number
 }
 
-interface PreviousWorkout {
-  sets: SessionSet[]
-}
-
 function LiveWorkoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -41,11 +36,11 @@ function LiveWorkoutContent() {
   const [machines, setMachines] = useState<Machine[]>([])
   const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null)
   const [sessionSets, setSessionSets] = useState<SessionSet[]>([])
-  const [previousWorkout, setPreviousWorkout] = useState<PreviousWorkout | null>(null)
   const [showRestTimer, setShowRestTimer] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   const supabase = createClient()
 
@@ -58,6 +53,7 @@ function LiveWorkoutContent() {
           router.push('/auth/login')
           return
         }
+        setCurrentUserId(user.id)
 
         // Fetch machines
         const { data: machinesList, error: machinesError } = await supabase
@@ -74,7 +70,7 @@ function LiveWorkoutContent() {
         if (machineId && machinesList) {
           const machine = machinesList.find(m => m.id === machineId)
           if (machine) {
-            selectMachine(machine)
+            selectMachine(machine, user.id)
           }
         }
       } catch (err) {
@@ -88,28 +84,39 @@ function LiveWorkoutContent() {
     initSession()
   }, [])
 
-  const selectMachine = async (machine: Machine) => {
+  const selectMachine = async (machine: Machine, userIdOverride?: string) => {
+    const userId = userIdOverride ?? currentUserId
+    if (!userId) return
     setSelectedMachine(machine)
 
     // Fetch previous workout for this machine
     try {
-      const { data: previousWorkouts, error: workoutsError } = await supabase
-        .from('workouts')
-        .select('id, sets:workout_sets(set_number, reps, weight_lbs)')
-        .eq('machine_id', machine.id)
-        .order('workout_date', { ascending: false })
+      const { data: previousSessions, error: sessionsError } = await supabase
+        .from('workout_sessions')
+        .select(`
+          id,
+          workout_exercises!inner (
+            id,
+            machine_id,
+            workout_sets (
+              set_number,
+              reps,
+              weight_lbs
+            )
+          )
+        `)
+        .eq('user_id', userId)
+        .eq('workout_exercises.machine_id', machine.id)
+        .order('session_date', { ascending: false })
         .limit(1)
 
-      if (!workoutsError && previousWorkouts && previousWorkouts.length > 0) {
-        const workout = previousWorkouts[0]
-        setPreviousWorkout({
-          sets: (workout.sets as unknown as SessionSet[]) || [],
-        })
+      if (!sessionsError && previousSessions && previousSessions.length > 0) {
+        const exercise = previousSessions[0].workout_exercises?.[0]
+        const sets = (exercise?.workout_sets as unknown as SessionSet[]) || []
         // Pre-fill session with previous workout data
-        setSessionSets((workout.sets as unknown as SessionSet[]) || [])
+        setSessionSets(sets)
       } else {
         setSessionSets([])
-        setPreviousWorkout(null)
       }
 
       setStep('logging')
@@ -171,26 +178,25 @@ function LiveWorkoutContent() {
 
       if (sessionError) throw sessionError
 
-      // Create workout
-      const { data: workout, error: workoutError } = await supabase
-        .from('workouts')
+      // Create exercise
+      const { data: workoutExercise, error: exerciseError } = await supabase
+        .from('workout_exercises')
         .insert({
-          user_id: user.id,
-          machine_id: selectedMachine.id,
-          workout_date: new Date().toISOString().split('T')[0],
           session_id: session.id,
+          machine_id: selectedMachine.id,
+          display_order: 0,
         })
         .select()
         .single()
 
-      if (workoutError) throw workoutError
+      if (exerciseError) throw exerciseError
 
       // Create sets
       const { error: setsError } = await supabase
         .from('workout_sets')
         .insert(
           sessionSets.map(set => ({
-            workout_id: workout.id,
+            exercise_id: workoutExercise.id,
             set_number: set.set_number,
             reps: set.reps,
             weight_lbs: set.weight_lbs,

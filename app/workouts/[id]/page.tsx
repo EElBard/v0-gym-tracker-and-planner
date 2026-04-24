@@ -19,47 +19,56 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  // Fetch workout with machine and sets
-  const { data: workout, error } = await supabase
-    .from('workouts')
+  // Fetch session with exercises, machines, and sets
+  const { data: workoutSession, error } = await supabase
+    .from('workout_sessions')
     .select(`
       id,
-      workout_date,
+      session_date,
       notes,
-      machines (
+      workout_exercises (
         id,
-        name
-      ),
-      workout_sets (
-        id,
-        set_number,
-        reps,
-        weight_lbs
+        machine_id,
+        machines (
+          id,
+          name
+        ),
+        workout_sets (
+          id,
+          set_number,
+          reps,
+          weight_lbs
+        )
       )
     `)
     .eq('id', id)
     .eq('user_id', user.id)
     .single()
 
-  if (error || !workout) notFound()
+  if (error || !workoutSession) notFound()
 
-  const sets = (workout.workout_sets || [])
-    .map(s => ({
-      id: s.id,
-      set_number: s.set_number,
-      reps: s.reps,
-      weight_lbs: Number(s.weight_lbs),
-    }))
-    .sort((a, b) => a.set_number - b.set_number)
+  const exercises = (workoutSession.workout_exercises || []).map(exercise => ({
+    id: exercise.id,
+    machine: exercise.machines as unknown as { id: string; name: string },
+    sets: (exercise.workout_sets || [])
+      .map(s => ({
+        id: s.id,
+        set_number: s.set_number,
+        reps: s.reps,
+        weight_lbs: Number(s.weight_lbs),
+      }))
+      .sort((a, b) => a.set_number - b.set_number),
+  }))
 
-  const volume = calculateVolume(sets)
-  const maxWeight = Math.max(...sets.map(s => s.weight_lbs))
-  const maxWeightSet = sets.find(s => s.weight_lbs === maxWeight)
+  const allSets = exercises.flatMap(exercise => exercise.sets)
+  const volume = calculateVolume(allSets)
+  const maxWeight = allSets.length > 0 ? Math.max(...allSets.map(s => s.weight_lbs)) : 0
+  const maxWeightSet = allSets.find(s => s.weight_lbs === maxWeight)
   const estimated1RM = maxWeightSet 
     ? calculateEstimated1RM(maxWeightSet.weight_lbs, maxWeightSet.reps)
     : null
 
-  const machine = workout.machines as unknown as { id: string; name: string }
+  const primaryMachine = exercises[0]?.machine
 
   return (
     <div className="min-h-svh bg-background">
@@ -67,20 +76,20 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
       <main className="container px-4 md:px-6 mx-auto py-6 max-w-2xl">
         <div className="flex flex-col gap-6">
           <Link 
-            href={`/machines/${machine.id}`}
+            href={primaryMachine ? `/machines/${primaryMachine.id}` : '/machines'}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to {machine.name}
+            Back to {primaryMachine?.name ?? 'machines'}
           </Link>
 
           {/* Header */}
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-2xl font-bold">{machine.name}</h1>
+              <h1 className="text-2xl font-bold">Workout Session</h1>
               <p className="text-muted-foreground flex items-center gap-2 mt-1">
                 <Calendar className="h-4 w-4" />
-                {format(new Date(workout.workout_date), 'EEEE, MMMM d, yyyy')}
+                {format(new Date(workoutSession.session_date), 'EEEE, MMMM d, yyyy')}
               </p>
             </div>
           </div>
@@ -100,7 +109,7 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Max Weight</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">{maxWeight} lbs</p>
+                <p className="text-2xl font-bold">{maxWeight === 0 ? 'BW' : `${maxWeight} lbs`}</p>
               </CardContent>
             </Card>
             <Card>
@@ -113,29 +122,34 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
             </Card>
           </div>
 
-          {/* Sets */}
+          {/* Exercises and sets */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Dumbbell className="h-5 w-5" />
-                Sets ({sets.length})
+                Exercises ({exercises.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-2 text-sm font-medium text-muted-foreground mb-3 px-2">
-                <span>Set</span>
-                <span>Reps</span>
-                <span>Weight</span>
-              </div>
               <div className="space-y-1">
-                {sets.map((set) => (
-                  <div
-                    key={set.id}
-                    className="grid grid-cols-3 gap-2 py-3 px-2 rounded-md hover:bg-muted/50"
-                  >
-                    <span className="font-semibold">{set.set_number}</span>
-                    <span>{set.reps}</span>
-                    <span>{set.weight_lbs} lbs</span>
+                {exercises.map((exercise) => (
+                  <div key={exercise.id} className="mb-4">
+                    <h3 className="font-medium mb-2">{exercise.machine?.name ?? 'Unknown machine'}</h3>
+                    <div className="grid grid-cols-3 gap-2 text-sm font-medium text-muted-foreground mb-2 px-2">
+                      <span>Set</span>
+                      <span>Reps</span>
+                      <span>Weight</span>
+                    </div>
+                    {exercise.sets.map((set) => (
+                      <div
+                        key={set.id}
+                        className="grid grid-cols-3 gap-2 py-2 px-2 rounded-md hover:bg-muted/50"
+                      >
+                        <span className="font-semibold">{set.set_number}</span>
+                        <span>{set.reps}</span>
+                        <span>{set.weight_lbs === 0 ? 'BW' : `${set.weight_lbs} lbs`}</span>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
@@ -143,13 +157,13 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
           </Card>
 
           {/* Notes */}
-          {workout.notes && (
+          {workoutSession.notes && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium">Notes</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">{workout.notes}</p>
+                <p className="text-muted-foreground">{workoutSession.notes}</p>
               </CardContent>
             </Card>
           )}
@@ -157,7 +171,7 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
           {/* Actions */}
           <div className="flex gap-3">
             <Button asChild variant="outline" className="flex-1">
-              <Link href={`/machines/${machine.id}/progress`}>
+              <Link href={primaryMachine ? `/machines/${primaryMachine.id}/progress` : '/machines'}>
                 <TrendingUp className="h-4 w-4 mr-2" />
                 View Progress
               </Link>

@@ -5,7 +5,7 @@ import { Header } from '@/components/layout/header'
 import { PerformanceChart } from '@/components/gym/performance-chart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { calculateVolume, calculateEstimated1RM } from '@/lib/utils/weight-suggestion'
+import { calculateEstimated1RM } from '@/lib/utils/weight-suggestion'
 import { Dumbbell, TrendingUp, Calendar, BarChart3 } from 'lucide-react'
 
 export default async function ProgressPage() {
@@ -22,30 +22,40 @@ export default async function ProgressPage() {
     .order('name')
 
   // Fetch all workouts
-  const { data: allWorkouts } = await supabase
-    .from('workouts')
+  const { data: allSessions } = await supabase
+    .from('workout_sessions')
     .select(`
       id,
-      workout_date,
-      machine_id,
-      workout_sets (
-        reps,
-        weight_lbs
+      session_date,
+      workout_exercises (
+        machine_id,
+        workout_sets (
+          reps,
+          weight_lbs
+        )
       )
     `)
     .eq('user_id', user.id)
-    .order('workout_date', { ascending: true })
+    .order('session_date', { ascending: true })
 
-  // Group workouts by machine
-  const workoutsByMachine = new Map<string, typeof allWorkouts>()
-  ;(allWorkouts || []).forEach(w => {
-    const existing = workoutsByMachine.get(w.machine_id) || []
-    workoutsByMachine.set(w.machine_id, [...existing, w])
+  const allWorkoutExercises = (allSessions || []).flatMap(session =>
+    (session.workout_exercises || []).map(exercise => ({
+      machine_id: exercise.machine_id,
+      workout_date: session.session_date,
+      workout_sets: exercise.workout_sets || [],
+    }))
+  )
+
+  // Group workout exercises by machine
+  const workoutsByMachine = new Map<string, typeof allWorkoutExercises>()
+  allWorkoutExercises.forEach(exercise => {
+    const existing = workoutsByMachine.get(exercise.machine_id) || []
+    workoutsByMachine.set(exercise.machine_id, [...existing, exercise])
   })
 
   // Calculate overall stats
-  const totalWorkouts = allWorkouts?.length ?? 0
-  const uniqueDays = new Set(allWorkouts?.map(w => w.workout_date)).size
+  const totalWorkouts = allWorkoutExercises.length
+  const uniqueDays = new Set(allWorkoutExercises.map(w => w.workout_date)).size
   const uniqueMachines = workoutsByMachine.size
 
   // Process data for each machine

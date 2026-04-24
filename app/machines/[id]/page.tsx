@@ -41,36 +41,43 @@ export default async function MachineDetailPage({ params }: PageProps) {
   if (error || !machine) notFound()
 
   // Fetch workouts with sets
-  const { data: workouts } = await supabase
-    .from('workouts')
+  const { data: sessions } = await supabase
+    .from('workout_sessions')
     .select(`
       id,
-      workout_date,
+      session_date,
       notes,
-      workout_sets (
+      workout_exercises!inner (
         id,
-        set_number,
-        reps,
-        weight_lbs
+        machine_id,
+        workout_sets (
+          id,
+          set_number,
+          reps,
+          weight_lbs
+        )
       )
     `)
-    .eq('machine_id', id)
     .eq('user_id', user.id)
-    .order('workout_date', { ascending: false })
+    .eq('workout_exercises.machine_id', id)
+    .order('session_date', { ascending: false })
     .limit(20)
 
   // Format workouts for display and suggestion
-  const formattedWorkouts = (workouts || []).map(w => ({
-    id: w.id,
-    workout_date: w.workout_date,
-    notes: w.notes,
-    sets: (w.workout_sets || []).map(s => ({
-      id: s.id,
-      set_number: s.set_number,
-      reps: s.reps,
-      weight_lbs: Number(s.weight_lbs),
-    })),
-  }))
+  const formattedWorkouts = (sessions || []).map(session => {
+    const exercise = session.workout_exercises?.[0]
+    return {
+      id: session.id,
+      workout_date: session.session_date,
+      notes: session.notes,
+      sets: (exercise?.workout_sets || []).map(s => ({
+        id: s.id,
+        set_number: s.set_number,
+        reps: s.reps,
+        weight_lbs: Number(s.weight_lbs),
+      })),
+    }
+  })
 
   // Calculate weight suggestion based on last 3 workouts
   const recentWorkouts = formattedWorkouts.slice(0, 3)

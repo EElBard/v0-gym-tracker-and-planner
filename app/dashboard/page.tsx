@@ -36,42 +36,53 @@ export default async function DashboardPage() {
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-  const { data: recentWorkouts } = await supabase
-    .from('workouts')
+  const { data: recentSessions } = await supabase
+    .from('workout_sessions')
     .select(`
       id,
-      workout_date,
-      machine_id,
-      machines!inner (
-        machine_muscle_groups (
-          muscle_group_id,
-          is_primary
+      session_date,
+      workout_exercises (
+        machine_id,
+        machines!inner (
+          machine_muscle_groups (
+            muscle_group_id,
+            is_primary
+          )
         )
       )
     `)
     .eq('user_id', user.id)
-    .gte('workout_date', thirtyDaysAgo.toISOString().split('T')[0])
-    .order('workout_date', { ascending: false })
+    .gte('session_date', thirtyDaysAgo.toISOString().split('T')[0])
+    .order('session_date', { ascending: false })
 
   // Get last workout for each machine
-  const { data: lastWorkouts } = await supabase
-    .from('workouts')
-    .select('machine_id, workout_date')
+  const { data: lastSessions } = await supabase
+    .from('workout_sessions')
+    .select(`
+      session_date,
+      workout_exercises (
+        machine_id
+      )
+    `)
     .eq('user_id', user.id)
-    .order('workout_date', { ascending: false })
+    .order('session_date', { ascending: false })
 
   const lastWorkoutMap = new Map<string, string>()
-  lastWorkouts?.forEach(w => {
-    if (!lastWorkoutMap.has(w.machine_id)) {
-      lastWorkoutMap.set(w.machine_id, w.workout_date)
-    }
+  lastSessions?.forEach(session => {
+    session.workout_exercises?.forEach(exercise => {
+      if (!lastWorkoutMap.has(exercise.machine_id)) {
+        lastWorkoutMap.set(exercise.machine_id, session.session_date)
+      }
+    })
   })
 
   // Calculate muscle coverage
-  const workoutsForCoverage = (recentWorkouts || []).map(w => ({
-    workout_date: w.workout_date,
-    muscle_groups: (w.machines as unknown as { machine_muscle_groups: { muscle_group_id: string; is_primary: boolean }[] })?.machine_muscle_groups || [],
-  }))
+  const workoutsForCoverage = (recentSessions || []).flatMap(session =>
+    (session.workout_exercises || []).map(exercise => ({
+      workout_date: session.session_date,
+      muscle_groups: ((exercise.machines as unknown as { machine_muscle_groups: { muscle_group_id: string; is_primary: boolean }[] })?.machine_muscle_groups) || [],
+    }))
+  )
   const coverage = analyzeMuscleGroupCoverage(workoutsForCoverage)
 
   // Format machines for display
@@ -84,8 +95,8 @@ export default async function DashboardPage() {
   }))
 
   // Stats
-  const totalWorkoutsThisMonth = recentWorkouts?.length ?? 0
-  const uniqueDaysWorkedOut = new Set(recentWorkouts?.map(w => w.workout_date)).size
+  const totalWorkoutsThisMonth = workoutsForCoverage.length
+  const uniqueDaysWorkedOut = new Set(workoutsForCoverage.map(w => w.workout_date)).size
   const machineCount = machines?.length ?? 0
 
   return (
@@ -156,8 +167,8 @@ export default async function DashboardPage() {
                   Last Workout
                 </p>
                 <p className="text-base sm:text-lg font-semibold truncate">
-                  {recentWorkouts?.[0]
-                    ? formatDistanceToNow(new Date(recentWorkouts[0].workout_date), { addSuffix: true })
+                  {recentSessions?.[0]
+                    ? formatDistanceToNow(new Date(recentSessions[0].session_date), { addSuffix: true })
                     : 'Never'}
                 </p>
               </CardContent>

@@ -79,7 +79,7 @@ export function WorkoutHistory({ workouts, onWorkoutUpdated }: WorkoutHistoryPro
     try {
       // Update notes
       const { error: notesError } = await supabase
-        .from('workouts')
+        .from('workout_sessions')
         .update({ notes: editingNotes || null })
         .eq('id', workoutId)
 
@@ -120,7 +120,7 @@ export function WorkoutHistory({ workouts, onWorkoutUpdated }: WorkoutHistoryPro
 
     try {
       const { error } = await supabase
-        .from('workouts')
+        .from('workout_sessions')
         .delete()
         .eq('id', workoutId)
 

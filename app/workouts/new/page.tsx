@@ -32,29 +32,35 @@ export default async function NewWorkoutPage({ searchParams }: PageProps) {
   if (error || !machine) notFound()
 
   // Fetch recent workouts for weight suggestion
-  const { data: recentWorkouts } = await supabase
-    .from('workouts')
+  const { data: recentSessions } = await supabase
+    .from('workout_sessions')
     .select(`
       id,
-      workout_date,
-      workout_sets (
-        reps,
-        weight_lbs
+      session_date,
+      workout_exercises!inner (
+        machine_id,
+        workout_sets (
+          reps,
+          weight_lbs
+        )
       )
     `)
-    .eq('machine_id', machineId)
     .eq('user_id', user.id)
-    .order('workout_date', { ascending: false })
+    .eq('workout_exercises.machine_id', machineId)
+    .order('session_date', { ascending: false })
     .limit(3)
 
   // Format workouts for suggestion calculation
-  const formattedWorkouts = (recentWorkouts || []).map(w => ({
-    workout_date: w.workout_date,
-    sets: (w.workout_sets || []).map(s => ({
-      reps: s.reps,
-      weight_lbs: Number(s.weight_lbs),
-    })),
-  }))
+  const formattedWorkouts = (recentSessions || []).map(session => {
+    const exercise = session.workout_exercises?.[0]
+    return {
+      workout_date: session.session_date,
+      sets: (exercise?.workout_sets || []).map(s => ({
+        reps: s.reps,
+        weight_lbs: Number(s.weight_lbs),
+      })),
+    }
+  })
 
   const { suggestedWeight, reason } = calculateWeightSuggestion(formattedWorkouts)
 

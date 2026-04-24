@@ -29,17 +29,24 @@ export default async function MachinesPage() {
     .order('name', { ascending: true })
 
   // Get last workout for each machine
-  const { data: lastWorkouts } = await supabase
-    .from('workouts')
-    .select('machine_id, workout_date')
+  const { data: lastSessions } = await supabase
+    .from('workout_sessions')
+    .select(`
+      session_date,
+      workout_exercises (
+        machine_id
+      )
+    `)
     .eq('user_id', user.id)
-    .order('workout_date', { ascending: false })
+    .order('session_date', { ascending: false })
 
   const lastWorkoutMap = new Map<string, string>()
-  lastWorkouts?.forEach(w => {
-    if (!lastWorkoutMap.has(w.machine_id)) {
-      lastWorkoutMap.set(w.machine_id, w.workout_date)
-    }
+  lastSessions?.forEach(session => {
+    session.workout_exercises?.forEach(exercise => {
+      if (!lastWorkoutMap.has(exercise.machine_id)) {
+        lastWorkoutMap.set(exercise.machine_id, session.session_date)
+      }
+    })
   })
 
   // Format machines for display

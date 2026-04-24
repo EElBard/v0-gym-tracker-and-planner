@@ -136,23 +136,35 @@ export function WorkoutForm({ machineId, machineName, suggestedWeight, suggested
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      // Create workout
-      const { data: workout, error: workoutError } = await supabase
-        .from('workouts')
+      // 1. Create session
+      const { data: session, error: sessionError } = await supabase
+        .from('workout_sessions')
         .insert({
           user_id: user.id,
-          machine_id: data.machine_id,
-          workout_date: data.workout_date,
+          session_date: data.workout_date,
           notes: data.notes || null,
         })
         .select()
         .single()
 
-      if (workoutError) throw workoutError
+      if (sessionError) throw sessionError
 
-      // Create sets - force weight to 0 if bodyweight
+      // 2. Create exercise entry for the selected machine
+      const { data: workoutExercise, error: exerciseError } = await supabase
+        .from('workout_exercises')
+        .insert({
+          session_id: session.id,
+          machine_id: data.machine_id,
+          display_order: 0,
+        })
+        .select()
+        .single()
+
+      if (exerciseError) throw exerciseError
+
+      // 3. Create sets - force weight to 0 if bodyweight
       const setsToInsert = data.sets.map((set, index) => ({
-        workout_id: workout.id,
+        exercise_id: workoutExercise.id,
         set_number: index + 1,
         reps: set.reps,
         weight_lbs: isBodyweight ? 0 : set.weight_lbs,
@@ -368,4 +380,52 @@ export function WorkoutForm({ machineId, machineName, suggestedWeight, suggested
       )}
     </form>
   )
+}
+
+export async function saveWorkoutSession(
+  userId: string, 
+  date: string, 
+  exercises: { machineId: string, sets: { reps: number, weight_lbs: number }[] }[]
+) {
+  const supabase = createClient()
+
+  // 1. Create the session
+  const { data: session, error: sessionError } = await supabase
+    .from('workout_sessions')
+    .insert([{ user_id: userId, session_date: date }])
+    .select()
+    .single()
+
+  if (sessionError) throw new Error(sessionError.message)
+
+  // 2. Loop through exercises and insert them
+  for (const [index, exercise] of exercises.entries()) {
+    const { data: workoutExercise, error: exerciseError } = await supabase
+      .from('workout_exercises')
+      .insert([{
+        session_id: session.id,
+        machine_id: exercise.machineId,
+        display_order: index
+      }])
+      .select()
+      .single()
+
+    if (exerciseError) throw new Error(exerciseError.message)
+
+    // 3. Insert the sets for this exercise
+    const setsToInsert = exercise.sets.map((set, setIndex) => ({
+      exercise_id: workoutExercise.id,
+      set_number: setIndex + 1,
+      reps: set.reps,
+      weight_lbs: set.weight_lbs
+    }))
+
+    const { error: setsError } = await supabase
+      .from('workout_sets')
+      .insert(setsToInsert)
+
+    if (setsError) throw new Error(setsError.message)
+  }
+
+  return session
 }
