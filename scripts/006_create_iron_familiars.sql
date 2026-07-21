@@ -4,8 +4,8 @@
 CREATE TABLE IF NOT EXISTS public.user_pets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
-  name TEXT NOT NULL DEFAULT 'Ignis',
-  species TEXT NOT NULL DEFAULT 'dragon',
+  name TEXT NOT NULL DEFAULT 'Barnaby',
+  species TEXT NOT NULL DEFAULT 'Owlbear',
   level INTEGER NOT NULL DEFAULT 1,
   experience INTEGER NOT NULL DEFAULT 0,
   is_enabled BOOLEAN NOT NULL DEFAULT true,
@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS public.user_pets (
 CREATE TABLE IF NOT EXISTS public.pets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
-  name TEXT NOT NULL DEFAULT 'Ignis',
-  species TEXT NOT NULL DEFAULT 'dragon',
+  name TEXT NOT NULL DEFAULT 'Barnaby',
+  species TEXT NOT NULL DEFAULT 'Owlbear',
   level INTEGER NOT NULL DEFAULT 1,
   experience INTEGER NOT NULL DEFAULT 0,
   is_enabled BOOLEAN NOT NULL DEFAULT true,

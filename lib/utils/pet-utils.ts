@@ -1,5 +1,14 @@
 export type PetMood = 'hyped' | 'happy' | 'neutral' | 'sad' | 'sleeping'
-export type PetSpecies = 'dragon' | 'bear' | 'wolf' | 'phoenix' | 'golem' | 'cat' | 'dog'
+
+export type PetSpecies =
+  | 'Owlbear'
+  | 'Wyrmling'
+  | 'Strix-Wolf'
+  | 'Intellect Devourer'
+  | 'Gelatinous Cube'
+  | 'Phoenix'
+  | 'Minotaur'
+  | 'Chimera'
 
 export interface PetData {
   id: string
@@ -19,9 +28,6 @@ export interface MoodDetails {
   label: string
   emoji: string
   description: string
-  bgGradient: string
-  textColor: string
-  borderColor: string
   badgeVariant: 'default' | 'secondary' | 'destructive' | 'outline'
 }
 
@@ -31,75 +37,160 @@ export interface SpeciesInfo {
   defaultPetName: string
   description: string
   element: string
-  color: string
+  palette: {
+    outline: string
+    shade: string
+    main: string
+    highlight: string
+  }
 }
 
 export const SPECIES_CONFIG: Record<PetSpecies, SpeciesInfo> = {
-  dragon: {
-    id: 'dragon',
-    name: 'Iron Dragon',
+  Owlbear: {
+    id: 'Owlbear',
+    name: 'Owlbear',
+    defaultPetName: 'Barnaby',
+    description: 'A fierce hybrid beast combining keen owl sight with massive bear strength.',
+    element: 'Nature & Steel',
+    palette: {
+      outline: '#151c14',
+      shade: '#3f6212',
+      main: '#84cc16',
+      highlight: '#fef08a',
+    },
+  },
+  Wyrmling: {
+    id: 'Wyrmling',
+    name: 'Wyrmling',
     defaultPetName: 'Ignis',
-    description: 'A fierce mythical beast fueled by relentless workout intensity.',
+    description: 'A spirited dragon kin breathing fire into your daily fitness routines.',
     element: 'Fire & Iron',
-    color: '#f97316',
+    palette: {
+      outline: '#1a0904',
+      shade: '#991b1b',
+      main: '#ef4444',
+      highlight: '#fbbf24',
+    },
   },
-  bear: {
-    id: 'bear',
-    name: 'Grizzly Titan',
-    defaultPetName: 'Ursa',
-    description: 'A mighty behemoth symbolizing raw strength and heavy compound lifts.',
-    element: 'Earth & Steel',
-    color: '#84cc16',
+  'Strix-Wolf': {
+    id: 'Strix-Wolf',
+    name: 'Strix-Wolf',
+    defaultPetName: 'Sylva',
+    description: 'A legendary winged wolf with swift endurance and moonlight reflexes.',
+    element: 'Wind & Lightning',
+    palette: {
+      outline: '#071521',
+      shade: '#1e3a8a',
+      main: '#06b6d4',
+      highlight: '#a5f3fc',
+    },
   },
-  wolf: {
-    id: 'wolf',
-    name: 'Cyber Wolf',
-    defaultPetName: 'Fenrir',
-    description: 'An agile cybernetic predator built for endurance and speed.',
-    element: 'Lightning & Plasma',
-    color: '#06b6d4',
+  'Intellect Devourer': {
+    id: 'Intellect Devourer',
+    name: 'Intellect Devourer',
+    defaultPetName: 'Synapse',
+    description: 'A quadrupedal mental master minding your workout strategies and PRs.',
+    element: 'Psionic Metal',
+    palette: {
+      outline: '#1f051b',
+      shade: '#831843',
+      main: '#ec4899',
+      highlight: '#fbcfe8',
+    },
   },
-  phoenix: {
-    id: 'phoenix',
-    name: 'Blaze Phoenix',
-    defaultPetName: 'Astra',
-    description: 'A radiant creature rising stronger after every grueling session.',
-    element: 'Solar Light',
-    color: '#ec4899',
+  'Gelatinous Cube': {
+    id: 'Gelatinous Cube',
+    name: 'Gelatinous Cube',
+    defaultPetName: 'Squishy',
+    description: 'An iconic translucent slime absorbing heavy reps and iron willpower.',
+    element: 'Acid & Ooze',
+    palette: {
+      outline: '#041f16',
+      shade: '#047857',
+      main: '#10b981',
+      highlight: '#6ee7b7',
+    },
   },
-  golem: {
-    id: 'golem',
-    name: 'Obsidian Golem',
-    defaultPetName: 'Granite',
-    description: 'An indestructible monolith forged from iron willpower.',
-    element: 'Stone & Metal',
-    color: '#a855f7',
+  Phoenix: {
+    id: 'Phoenix',
+    name: 'Phoenix',
+    defaultPetName: 'Sol',
+    description: 'A radiant sunbird reborn stronger after every intense training session.',
+    element: 'Solar Flame',
+    palette: {
+      outline: '#1c1503',
+      shade: '#b45309',
+      main: '#eab308',
+      highlight: '#fef08a',
+    },
   },
-  cat: {
-    id: 'cat',
-    name: 'Shadow Panther',
-    defaultPetName: 'Nyx',
-    description: 'Sleek, focused, and quick with cat-like reflexes.',
-    element: 'Shadow & Metal',
-    color: '#6366f1',
+  Minotaur: {
+    id: 'Minotaur',
+    name: 'Minotaur',
+    defaultPetName: 'Asterion',
+    description: 'A brute force labyrinth titan charging through heavy lifts.',
+    element: 'Earth & Granite',
+    palette: {
+      outline: '#13091f',
+      shade: '#581c87',
+      main: '#a855f7',
+      highlight: '#f0abfc',
+    },
   },
-  dog: {
-    id: 'dog',
-    name: 'Loyal Sentinel',
-    defaultPetName: 'Buster',
-    description: 'Your ultimate gym buddy, always cheering on your gains.',
-    element: 'Kinetic Energy',
-    color: '#eab308',
+  Chimera: {
+    id: 'Chimera',
+    name: 'Chimera',
+    defaultPetName: 'Triad',
+    description: 'A multi-headed mythic predator with unyielding versatility.',
+    element: 'Tri-Element',
+    palette: {
+      outline: '#1c0609',
+      shade: '#881337',
+      main: '#f43f5e',
+      highlight: '#fed7aa',
+    },
   },
+}
+
+export const ALL_SPECIES: PetSpecies[] = [
+  'Owlbear',
+  'Wyrmling',
+  'Strix-Wolf',
+  'Intellect Devourer',
+  'Gelatinous Cube',
+  'Phoenix',
+  'Minotaur',
+  'Chimera',
+]
+
+/**
+ * Normalizes any species string to one of the 8 canonical PetSpecies types.
+ */
+export function normalizeSpecies(rawSpecies?: string | null): PetSpecies {
+  if (!rawSpecies) return 'Owlbear'
+  const clean = rawSpecies.trim().toLowerCase()
+
+  if (clean.includes('owl') || clean.includes('bear')) return 'Owlbear'
+  if (clean.includes('wyrm') || clean.includes('dragon') || clean.includes('ignis')) return 'Wyrmling'
+  if (clean.includes('strix') || clean.includes('wolf')) return 'Strix-Wolf'
+  if (clean.includes('intellect') || clean.includes('devourer') || clean.includes('brain')) return 'Intellect Devourer'
+  if (clean.includes('gelatinous') || clean.includes('cube') || clean.includes('golem') || clean.includes('ooze')) return 'Gelatinous Cube'
+  if (clean.includes('phoenix') || clean.includes('bird')) return 'Phoenix'
+  if (clean.includes('minotaur') || clean.includes('bull')) return 'Minotaur'
+  if (clean.includes('chimera') || clean.includes('cat') || clean.includes('dog')) return 'Chimera'
+
+  return 'Owlbear'
+}
+
+/**
+ * Gets default pet name for a species.
+ */
+export function getDefaultNameForSpecies(species: PetSpecies): string {
+  return SPECIES_CONFIG[species]?.defaultPetName || 'Barnaby'
 }
 
 /**
  * Calculates pet mood state based on recency of user's last workout date.
- * - Worked out today (0 days): 'hyped'
- * - Worked out 1-2 days ago: 'happy'
- * - Worked out 3-4 days ago: 'neutral'
- * - Worked out 5-6 days ago: 'sad'
- * - 7+ days or no workout: 'sleeping'
  */
 export function getPetMood(lastWorkoutDate?: Date | string | null): PetMood {
   if (!lastWorkoutDate) return 'sleeping'
@@ -129,9 +220,6 @@ export function getMoodDetails(mood: PetMood): MoodDetails {
         label: 'Hyped!',
         emoji: '🔥',
         description: 'Charged up & pumped from your recent workout!',
-        bgGradient: 'from-orange-500/20 via-amber-500/10 to-transparent',
-        textColor: 'text-orange-500',
-        borderColor: 'border-orange-500/40',
         badgeVariant: 'default',
       }
     case 'happy':
@@ -139,10 +227,7 @@ export function getMoodDetails(mood: PetMood): MoodDetails {
         mood,
         label: 'Happy',
         emoji: '⚡',
-        description: 'Feeling energized and ready for your next session.',
-        bgGradient: 'from-emerald-500/20 via-teal-500/10 to-transparent',
-        textColor: 'text-emerald-500',
-        borderColor: 'border-emerald-500/40',
+        description: 'Feeling motivated and ready for your next session.',
         badgeVariant: 'default',
       }
     case 'neutral':
@@ -150,10 +235,7 @@ export function getMoodDetails(mood: PetMood): MoodDetails {
         mood,
         label: 'Resting',
         emoji: '🧘',
-        description: 'Cooling down. A workout soon will restore peak energy.',
-        bgGradient: 'from-blue-500/20 via-cyan-500/10 to-transparent',
-        textColor: 'text-blue-500',
-        borderColor: 'border-blue-500/40',
+        description: 'Cooling down. A workout soon will restore peak stamina.',
         badgeVariant: 'secondary',
       }
     case 'sad':
@@ -162,9 +244,6 @@ export function getMoodDetails(mood: PetMood): MoodDetails {
         label: 'Sluggish',
         emoji: '🌧️',
         description: 'Needs gym time! Complete a workout to boost morale.',
-        bgGradient: 'from-amber-500/20 via-yellow-500/10 to-transparent',
-        textColor: 'text-amber-500',
-        borderColor: 'border-amber-500/40',
         badgeVariant: 'outline',
       }
     case 'sleeping':
@@ -174,9 +253,6 @@ export function getMoodDetails(mood: PetMood): MoodDetails {
         label: 'Sleeping',
         emoji: '💤',
         description: 'In hibernation mode. Log a workout session to wake up!',
-        bgGradient: 'from-slate-500/20 via-zinc-500/10 to-transparent',
-        textColor: 'text-slate-400',
-        borderColor: 'border-slate-500/40',
         badgeVariant: 'secondary',
       }
   }
