@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { MoreVertical, Trash, CalendarIcon, Loader2 } from 'lucide-react'
+import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
@@ -32,7 +33,7 @@ export function SessionActions({
 }) {
   const router = useRouter()
   const { toast } = useToast()
-  
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -66,7 +67,7 @@ export function SessionActions({
 
   const handleUpdateDate = async () => {
     if (!date) return
-    
+
     try {
       setIsUpdatingDate(true)
       await updateSessionDate(sessionId, date.toISOString())

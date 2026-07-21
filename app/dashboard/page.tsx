@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MachineCard } from '@/components/gym/machine-card'
 import { MuscleCoverageCard } from '@/components/gym/muscle-coverage-card'
+import { PetDashboardWidget } from '@/components/PetDashboardWidget'
 import { analyzeMuscleGroupCoverage } from '@/lib/utils/muscle-coverage'
 import { Plus, Dumbbell, TrendingUp, Calendar, Zap } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
@@ -125,6 +126,9 @@ export default async function DashboardPage() {
               </Button>
             </div>
           </div>
+
+          {/* IronFamiliars Pet Widget */}
+          <PetDashboardWidget lastWorkoutDate={recentSessions?.[0]?.session_date || null} />
 
           {/* Stats cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">

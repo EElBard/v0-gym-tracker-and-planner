@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { calculateVolume, calculateEstimated1RM } from '@/lib/utils/weight-suggestion'
 import { ArrowLeft, Calendar, Dumbbell, TrendingUp } from 'lucide-react'
 import { format } from 'date-fns'
+import { SessionActions } from '@/app/sessions/session-actions'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -92,6 +93,11 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
                 {format(new Date(workoutSession.session_date), 'EEEE, MMMM d, yyyy')}
               </p>
             </div>
+            <SessionActions 
+              sessionId={workoutSession.id} 
+              initialDate={workoutSession.session_date} 
+              redirectOnDelete={true}
+            />
           </div>
 
           {/* Stats */}
