@@ -7,6 +7,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { MachineCard } from '@/components/gym/machine-card'
 import { Plus, Dumbbell } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function MachinesPage() {
   const supabase = await createClient()
   

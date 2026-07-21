@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Calendar, ChevronRight, Dumbbell, Layers, Weight } from 'lucide-react'
 import { SessionActions } from './session-actions'
 
+export const dynamic = 'force-dynamic'
+
 type SessionRow = {
   id: string
   session_date: string

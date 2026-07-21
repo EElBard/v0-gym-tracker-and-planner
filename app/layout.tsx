@@ -1,10 +1,11 @@
-import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Press_Start_2P, Chakra_Petch } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
+const pressStart2P = Press_Start_2P({ weight: '400', subsets: ["latin"], variable: "--font-retro" });
+const chakraPetch = Chakra_Petch({ weight: ['400', '600', '700'], subsets: ["latin"], variable: "--font-tech" });
 
 export const metadata: Metadata = {
   title: 'GymTracker - Track Your Workouts',
@@ -36,6 +37,8 @@ export const viewport: Viewport = {
   ],
 }
 
+import { PetProvider } from '@/lib/context/pet-context'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -43,8 +46,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">
-        {children}
+      <body className={`${geist.variable} ${geistMono.variable} ${pressStart2P.variable} ${chakraPetch.variable} font-sans antialiased`}>
+        <PetProvider>
+          {children}
+        </PetProvider>
         <Analytics />
       </body>
     </html>

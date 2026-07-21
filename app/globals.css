@@ -84,8 +84,10 @@
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: var(--font-sans), 'Geist', sans-serif;
+  --font-mono: var(--font-mono), 'Geist Mono', monospace;
+  --font-retro: var(--font-retro), 'Press Start 2P', monospace;
+  --font-tech: var(--font-tech), 'Chakra Petch', sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -129,6 +131,27 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans tracking-normal;
   }
 }
+
+.font-retro {
+  font-family: var(--font-retro), monospace;
+}
+
+.font-tech {
+  font-family: var(--font-tech), sans-serif;
+}
+
+.gba-badge {
+  font-family: var(--font-retro), monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.gba-panel {
+  border: 2px solid oklch(var(--border));
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.08);
+}
+
